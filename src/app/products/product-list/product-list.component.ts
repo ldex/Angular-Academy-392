@@ -16,7 +16,11 @@ export class ProductListComponent implements OnInit {
 
   title: string = 'Products';
   selectedProduct: Product;
+
   products$: Observable<Product[]>;
+  productsNumber$: Observable<number>;
+  mostExpensiveProduct$: Observable<Product>;
+
   errorMessage;
 
   constructor(
@@ -29,6 +33,17 @@ export class ProductListComponent implements OnInit {
     this.products$ = this
                       .productService
                       .products$;
+
+    this.productsNumber$ = this
+                            .products$
+                            .pipe(
+                              map(products => products.length),
+                              startWith(0)
+                            )
+
+    this.mostExpensiveProduct$ = this
+                                    .productService
+                                    .mostExpensiveProduct$;
   }
 
   get favourites(): number {
@@ -36,10 +51,18 @@ export class ProductListComponent implements OnInit {
   }
 
   // Pagination
-  pageSize = 5;
+  productsToLoad = this.productService.productsToLoad;
+  pageSize = this.productsToLoad / 2;
   start = 0;
   end = this.pageSize;
   currentPage = 1;
+
+  loadMore() {
+    let skip = this.end;
+    let take = this.productsToLoad;
+
+    this.productService.initProducts(skip, take);
+  }
 
   previousPage() {
     this.start -= this.pageSize;
